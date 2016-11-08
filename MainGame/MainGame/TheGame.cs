@@ -15,8 +15,7 @@ namespace MainGame
     public class TheGame : UnicornGame
     {
         Scene scene;
-        Effect effect1;
-        //VoidScene voidScene;
+        //Effect effect1;
 
         MainMenu mainMenu;
 
@@ -38,10 +37,10 @@ namespace MainGame
                     {
                         set++;
                         scene = new Conturs(set, ContursExit);
+                        menu = null;
                     }
                     else
                         ToMainMenu();
-                    menu = null;
                 });
         }
 
@@ -63,10 +62,10 @@ namespace MainGame
                     {
                         set++;
                         scene = new TrainMainScene(set, TrainExit);
+                        menu = null;
                     }
                     else
                         ToMainMenu();
-                    menu = null;
                 });
         }
 
@@ -88,10 +87,60 @@ namespace MainGame
                     {
                         set++;
                         scene = new Wizzards(set, WizzardsExit);
+                        menu = null;
                     }
                     else
                         ToMainMenu();
+                });
+        }
+
+        void HousesExit(int set)
+        {
+            menu = new EndLevelMenu(
+                delegate ()
+                {
+                    menu = mainMenu;
+                },
+                delegate ()
+                {
+                    scene = new Houses(set, HousesExit);
                     menu = null;
+                },
+                delegate ()
+                {
+                    if (set < 2)
+                    {
+                        set++;
+                        scene = new Houses(set, HousesExit);
+                        menu = null;
+                    }
+                    else
+                        ToMainMenu();
+                });
+        }
+
+        void BallonsExit(int set)
+        {
+            menu = new EndLevelMenu(
+                delegate ()
+                {
+                    menu = mainMenu;
+                },
+                delegate ()
+                {
+                    scene = new Ballons(set, BallonsExit);
+                    menu = null;
+                },
+                delegate ()
+                {
+                    if (set < 6)
+                    {
+                        set++;
+                        scene = new Ballons(set, BallonsExit);
+                        menu = null;
+                    }
+                    else
+                        ToMainMenu();
                 });
         }
 
@@ -99,6 +148,7 @@ namespace MainGame
         {
             showPanel = false;
             scene = new VoidScene(0, delegate (int exCode) { Exit(); });
+            menu = mainMenu;
         }
 
         void Play(int i)
@@ -114,6 +164,12 @@ namespace MainGame
                 case (2):
                     scene = new Wizzards(0, WizzardsExit);
                     break;
+                case (3):
+                    scene = new Houses(0, HousesExit);
+                    break;
+                case (4):
+                    scene = new Ballons(0, BallonsExit);
+                    break;
             }
             showPanel = true;
             menu = null;
@@ -122,7 +178,7 @@ namespace MainGame
         protected override void LoadContent()
         {
             base.LoadContent();
-            effect1 = EngineCore.content.Load<Effect>("Shaders/Blur");
+            //effect1 = EngineCore.content.Load<Effect>("Shaders/Blur");
             SetBack(delegate () { menu = mainMenu; });
             mainMenu = new MainMenu(
                 delegate
@@ -154,7 +210,7 @@ namespace MainGame
         protected override void Draw(GameTime gameTime)
         {
             base.Draw(gameTime);
-            if (menu == null || scene is VoidScene)
+            /*if (menu == null || scene is VoidScene)
             {
                 scene.effect = null;
             }
@@ -162,7 +218,7 @@ namespace MainGame
             {
                 scene.effect = effect1;
 
-            }
+            }*/
             scene.Draw();
             DrawMenu();
             EngineCore.DrawCursor();

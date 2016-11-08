@@ -11,106 +11,171 @@ namespace MainGame
     class Ballons : Scene
     {
         int set = 0;
-        List<string> wordSet;
-        string firstWord;
-        int trueWord;
-        List<Sprite> wordsPic;
-        Sprite truePic;
-        Sprite mask;
-        float errorTimer = 0;
-        public bool win = false;
+        List<Sprite> ballons;
+        List<Sprite> items;
+        Sprite clouds;
+        Sprite car;
+        int baloonsCount = 3;
+        int blowed = 0;
+        int itemsCount;
+        int itemsPressed = 0;
+        Color mainColor;
+        int fase = 0;
 
         public Ballons(int set, Action<int> exit) : base(exit)
         {
             this.set = set;
-            wordSet = new List<string>();
-            int maskPos = 0;
-            switch (set)
+            Canvas.elements.Add(new Sprite(Canvas, "Ballons/Sky", 100, Vector2.Zero));
+            Canvas.elements.Add(new Sprite(Canvas, "Ballons/Sky", 100, new Vector2(0, 20)));
+            clouds = new Sprite(Canvas, "Ballons/Clouds", 200, Vector2.Zero);
+            Canvas.elements.Add(clouds);
+            Canvas.elements.Add(new Sprite(Canvas, "Ballons/BG", 100, Vector2.Zero));
+            car = new Sprite(Canvas, "Ballons/Car", 20, new Vector2(40, 43));
+            Canvas.elements.Add(car);
+            ballons = new List<Sprite>();
+            foreach (Color color in new Color[] { Color.Red, Color.Orange, Color.Yellow, Color.Green, Color.SkyBlue, Color.DarkBlue, Color.Violet })
+                for (int i = 0; i < 3; i++)
+                {
+                    Sprite ballon = new Sprite(Canvas, "Ballons/Ballon", new int[] { 8 },  10, Vector2.Zero);
+                    ballon.color = color;
+                    ballon.animationLooped = true;
+                    ballons.Add(ballon);
+                    Canvas.elements.Add(ballon);
+                }
+            Random rand = new Random();
+            ballons.Sort(delegate (Sprite a, Sprite b)
+            {
+                int res = rand.Next(2) * 2 - 1;
+                return res;
+            });
+            for (int y = 0; y < 3; y++)
+                for (int x = 0; x < 6; x++)
+                {
+                    ballons[x + y * 6].pos.X = 1 + x * 12.5f + (y % 2) * 5;
+                    ballons[x + y * 6].pos.Y = 1 + y * 13;
+                }
+            ballons[18].pos = new Vector2(6 + 6 * 12.5f, 1 + 13);
+            ballons[19].pos = new Vector2(1 + 6 * 12.5f, 1 + 2 * 13);
+            ballons[20].pos = new Vector2(1 + 7 * 12.5f, 1 + 2 * 13);
+            items = new List<Sprite>();
+            for (int i = 0; i < 5; i++)
+            {
+                Sprite item = new Sprite(null, "Ballons/Sets/" + set.ToString() + "/" + i.ToString(), 13, Vector2.One);
+                item.value = i;
+                items.Add(item);
+            }
+            items.Sort(delegate (Sprite a, Sprite b)
+            {
+                int res = rand.Next(2) * 2 - 1;
+                return res;
+            });
+            for (int i = 0; i < 5; i++)
+            {
+                Sprite place = new Sprite(Canvas, "Ballons/Place", 15, new Vector2(5 + 19 * i, 58));
+                items[i].parent = place;
+                place.elements.Add(items[i]);
+                Canvas.elements.Add(place);
+            }
+                switch (set)
             {
                 default:        //0
-                    firstWord = "Сом";
-                    wordSet.Add("Кот");
-                    wordSet.Add("Дом");
-                    wordSet.Add("Торт");
-                    wordSet.Add("Мак");
-                    trueWord = 2;
-                    maskPos = 0;
+                    itemsCount = 4;
+                    mainColor = Color.Red;
                     break;
                 case (1):
-                    firstWord = "Дом";
-                    wordSet.Add("Ком");
-                    wordSet.Add("Торт");
-                    wordSet.Add("Мак");
-                    wordSet.Add("Дуб");
-                    trueWord = 1;
-                    maskPos = 0;
+                    itemsCount = 2;
+                    mainColor = Color.Orange;
                     break;
                 case (2):
-                    firstWord = "Торт";
-                    wordSet.Add("Корт");
-                    wordSet.Add("Ком");
-                    wordSet.Add("Мак");
-                    wordSet.Add("Дуб");
-                    trueWord = 1;
-                    maskPos = 0;
+                    itemsCount = 3;
+                    mainColor = Color.Yellow;
                     break;
                 case (3):
-                    firstWord = "Каска";
-                    wordSet.Add("Маска");
-                    wordSet.Add("Корт");
-                    wordSet.Add("Торт");
-                    wordSet.Add("Мак");
-                    trueWord = 1;
-                    maskPos = 0;
+                    itemsCount = 4;
+                    mainColor = Color.Green;
                     break;
                 case (4):
-                    firstWord = "Мак";
-                    wordSet.Add("Рак");
-                    wordSet.Add("Торт");
-                    wordSet.Add("Шар");
-                    wordSet.Add("Кот");
-                    trueWord = 1;
-                    maskPos = 0;
+                    itemsCount = 3;
+                    mainColor = Color.SkyBlue;
                     break;
                 case (5):
-                    firstWord = "Зуб";
-                    wordSet.Add("Дуб");
-                    wordSet.Add("Мак");
-                    wordSet.Add("Кот");
-                    wordSet.Add("Рак");
-                    trueWord = 1;
-                    maskPos = 0;
+                    itemsCount = 3;
+                    mainColor = Color.DarkBlue;
+                    break;
+                case (6):
+                    itemsCount = 1;
+                    mainColor = Color.Violet;
                     break;
             }
-            List<int> words = (new int[] { 1, 2, 3, 4 }).ToList<int>();
-            Random rand = new Random();
-            words.Sort(delegate (int a, int b) { return rand.Next(2) * 2 - 1; });
-            wordsPic = new List<Sprite>();
-            Canvas.elements.Add(new Sprite(Canvas, "Wizzard/BackGround", 100, Vector2.Zero));
-            for (int i = 0; i < 4; i++)
-            {
-                wordsPic.Add(new Sprite(Canvas, "Wizzard/Set" + set.ToString() + "/" + words[i].ToString(), 16, new Vector2(13 + i * 19.3f, 37)));
-                wordsPic[i].value = words[i];
-                Canvas.elements.Add(wordsPic[i]);
-            }
-            Canvas.elements.Add(new Sprite(Canvas, "Wizzard/Set" + set.ToString() + "/0", 20, new Vector2(24, 6.5f)));
-            truePic = new Sprite(Canvas, "Wizzard/Set" + set.ToString() + "/" + trueWord.ToString(), 20, new Vector2(55, 6.5f));
-            truePic.visible = false;
-            Canvas.elements.Add(truePic);
-            Sprite sprite;
-            Canvas.elements.Add(sprite = new Sprite(Canvas, "Wizzard/Set" + set.ToString() + "/Subscribes/0", 1, new Vector2(0, 28)));
-            sprite.scale = 7 / sprite.size.Y;
-            sprite.pos.X = 30 - sprite.size.X / 2;
-            Canvas.elements.Add(sprite = new Sprite(Canvas, "Wizzard/Set" + set.ToString() + "/Subscribes/1", 1, new Vector2(0, 28)));
-            sprite.scale = 7 / sprite.size.Y;
-            sprite.pos.X = 70 - sprite.size.X / 2;
-            Canvas.elements.Add(mask = new Sprite(Canvas, "Wizzard/Mask", 7.5f, new Vector2(70 - sprite.size.X / 2 + maskPos * 7.5f, 28)));
         }
 
         public override void Update()
         {
             base.Update();
-            if (errorTimer > 0)
+            clouds.pos.X = (clouds.pos.X - 0.1f) % 100;
+            if (fase == 0)
+            {
+                foreach (Sprite ballon in ballons)
+                {
+                    if (ballon.UnderMouse() &&
+                        EngineCore.currentMouseState.LeftButton == ButtonState.Pressed &&
+                        EngineCore.oldMouseState.LeftButton == ButtonState.Released &&
+                        ballon.color == mainColor && ballon.active)
+                    {
+                        AddEffect(new EffectSprite(Canvas, "Ballons/Boom", 7, 16, ballon.pos - Vector2.One * 4, 1.2f));
+                        EffectSprite blow = new EffectSprite(Canvas, "Ballons/Blow", 7, 16, ballon.pos - Vector2.One * 4, 1.2f);
+                        blow.color = ballon.color;
+                        AddEffect(blow);
+                        AddEvent(0.1f, delegate
+                        {
+                            ballon.visible = false;
+                            ballon.active = false;
+                        });
+                        AddEvent(1.2f, delegate
+                        {
+                            blowed++;
+                        });
+                    }
+                }
+                if (blowed >= baloonsCount)
+                    fase++;
+            }
+            if (fase == 1)
+            {
+                Canvas.pos.Y -= 0.5f;
+                if (Canvas.pos.Y < -16) fase++;
+            }
+            if (fase == 2)
+            {
+                for (int i = 0; i < 5; i++)
+                {
+                    if (items[i].UnderMouse() &&
+                        EngineCore.currentMouseState.LeftButton == ButtonState.Pressed &&
+                        EngineCore.oldMouseState.LeftButton == ButtonState.Released &&
+                        items[i].active && (int)items[i].value < itemsCount)
+                    {
+                        Vector2 start = items[i].parent.pos + items[i].pos;
+                        Vector2 end = car.pos;
+                        EffectSprite effect = new EffectSprite(Canvas, "Ballons/Sets/" + set.ToString() + "/" + ((int)items[i].value).ToString(), 1, 13, start, 1);
+                        int n = i;
+                        effect.move = delegate (float time, float delay)
+                        {
+                            return Vector2.Transform(((end - start) / 50), 
+                                   Matrix.CreateRotationZ((float)Math.Cos(time / effect.lifeTime * Math.PI)  * (n > 2? -1 : 1)));
+                        };
+                        AddEffect(effect);
+                        items[i].visible = false;
+                        items[i].active = false;
+                        itemsPressed++;
+                        if (itemsPressed >= itemsCount)
+                            AddEvent(1, delegate
+                            {
+                                exit(set);
+                            });
+                    }
+                }
+            }
+            /*if (errorTimer > 0)
             {
                 errorTimer -= EngineCore.gameTime.ElapsedGameTime.Milliseconds / 1000f;
             }
@@ -140,7 +205,7 @@ namespace MainGame
                         errorTimer = 0.5f;
                     }
             }
-            if (win) exit(set);
+            if (win) exit(set);*/
         }
     }
 }
