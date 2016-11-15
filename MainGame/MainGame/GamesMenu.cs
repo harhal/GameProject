@@ -26,6 +26,7 @@ namespace MainGame
             levelList.Add(new Sprite(levelPanel, "GamesMenu/Wizzards", 20, Vector2.Zero));
             levelList.Add(new Sprite(levelPanel, "GamesMenu/Houses", 20, Vector2.Zero));
             levelList.Add(new Sprite(levelPanel, "GamesMenu/Ballons", 20, Vector2.Zero));
+            levelList.Add(new Sprite(levelPanel, "GamesMenu/Dishes", 20, Vector2.Zero));
         }
 
         public override void Update()

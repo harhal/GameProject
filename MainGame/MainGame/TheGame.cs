@@ -144,6 +144,94 @@ namespace MainGame
                 });
         }
 
+        void DishesExit(int set)
+        {
+            switch (set)
+            {
+                default:
+                    if (set > 1 && set < 11)
+                        menu = new EndLevelMenu(
+                            delegate ()
+                            {
+                                menu = mainMenu;
+                            },
+                            delegate ()
+                            {
+                                scene = new Kitchen(--set, DishesExit);
+                                menu = null;
+                            },
+                            delegate ()
+                            {
+                                scene = new Kitchen(set, DishesExit);
+                                menu = null;
+                            });
+                    if (set > 11 && set < 24)
+                        menu = new EndLevelMenu(
+                            delegate ()
+                            {
+                                menu = mainMenu;
+                            },
+                            delegate ()
+                            {
+                                scene = new Table(--set, DishesExit);
+                                menu = null;
+                            },
+                            delegate ()
+                            {
+                                scene = new Table(set, DishesExit);
+                                menu = null;
+                            });
+                    break;
+                case (0):
+                    scene = new DishesIntro(0, DishesExit);
+                    break;
+                case (1):
+                    scene = new KitchenIntro(2, DishesExit);
+                    break;
+                case (2):
+                    scene = new Kitchen(2, DishesExit);
+                    break;
+                case (11):
+                    menu = new EndLevelMenu(
+                        delegate ()
+                        {
+                            menu = mainMenu;
+                        },
+                        delegate ()
+                        {
+                            scene = new DishesIntro(10, DishesExit);
+                            menu = null;
+                        },
+                        delegate ()
+                        {
+                            ToMainMenu();
+                        });
+                    break;
+                case (12):
+                    scene = new TableIntro(12, DishesExit);
+                    break;
+                case (13):
+                    scene = new Table(13, DishesExit);
+                    break;
+                case (24):
+                    menu = new EndLevelMenu(
+                        delegate ()
+                        {
+                            menu = mainMenu;
+                        },
+                        delegate ()
+                        {
+                            scene = new DishesIntro(0, DishesExit);
+                            menu = null;
+                        },
+                        delegate ()
+                        {
+                            ToMainMenu();
+                        });
+                    break;
+            }
+        }
+
         void ToMainMenu()
         {
             showPanel = false;
@@ -169,6 +257,9 @@ namespace MainGame
                     break;
                 case (4):
                     scene = new Ballons(0, BallonsExit);
+                    break;
+                case (5):
+                    scene = new DishesIntro(0, DishesExit);
                     break;
             }
             showPanel = true;

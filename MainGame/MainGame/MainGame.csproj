@@ -77,8 +77,14 @@
   <ItemGroup>
     <Compile Include="Ballons.cs" />
     <Compile Include="Conturs.cs" />
+    <Compile Include="Dishes\DishesIntro.cs" />
+    <Compile Include="Dishes\Kitchen.cs" />
+    <Compile Include="Dishes\KitchenIntro.cs" />
+    <Compile Include="Dishes\Table.cs" />
+    <Compile Include="Dishes\TableIntro.cs" />
     <Compile Include="GamesMenu.cs" />
     <Compile Include="Houses.cs" />
+    <Compile Include="Dishes\Dishes.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="MainMenu.cs" />
