@@ -1,3 +1,3 @@
 # GameProject
-writted with XNA
-add UnicornEngine.dll to work directory
+Writted with XNA.
+Add UnicornEngine.dll to work directory
