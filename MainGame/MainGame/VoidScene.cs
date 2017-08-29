@@ -11,21 +11,16 @@ namespace MainGame
     {
         Sprite sun;
 
-        /*void Play()
+        public override Scene GetReloadedScene()
         {
-            exit(1);
+            return this;
         }
-
-        void Exit()
-        {
-            exit(0);
-        }*/
 
         public VoidScene(int set, Action<int> exit) : base(exit)
         {
-            Canvas.elements.Add(new Sprite(Canvas, "MainMenu/BGColor", 100, Vector2.Zero));
-            Canvas.elements.Add(sun = new Sprite(Canvas, "MainMenu/Sun", 200, Vector2.One * -50));
-            Canvas.elements.Add(new Sprite(Canvas, "MainMenu/BackGround", 100, Vector2.Zero));
+            Canvas.elements.Add(new Sprite(Canvas, "Common/MainMenu/BGColor", 100, Vector2.Zero));
+            Canvas.elements.Add(sun = new Sprite(Canvas, "Common/MainMenu/Sun", 200, Vector2.One * -50));
+            Canvas.elements.Add(new Sprite(Canvas, "Common/MainMenu/BackGround", 100, Vector2.Zero));
         }
 
         public override void Draw()

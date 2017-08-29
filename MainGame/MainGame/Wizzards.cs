@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
@@ -10,137 +11,123 @@ namespace MainGame
 {
     class Wizzards : Scene
     {
+        class Word : Sprite
+        {
+            public int number;
+            public Sound sound;
+
+            public Word(Object2D parent, int set, int number) :
+                base(parent, TheGame.language + "/Wizzard/Set" + set.ToString() + "/" + number.ToString(), number == 0 ? 20 : 16, number == 0 ? new Vector2(40, 6.5f) : Vector2.Zero)
+            {
+                this.number = number;
+                this.sound = new Sound(TheGame.language + "/Wizzard/Set" + set.ToString() + "/" + number.ToString());
+            }
+
+            public void Move(int pos)
+            {
+                if (pos < 0)
+                {
+                    this.pos = new Vector2(40, 6.5f);
+                    this.scale = 20;
+                }
+                else
+                    this.pos = new Vector2(13 + pos * 19.3f, 37);
+            }
+        }
+
         int set = 0;
-        List<string> wordSet;
-        string firstWord;
-        int trueWord;
-        List<Sprite> wordsPic;
-        Sprite truePic;
+        List<Word> words;
+        Word trueWord;
+        Word baseWord;
         Sprite mask;
-        float errorTimer = 0;
         public bool win = false;
 
         public Wizzards(int set, Action<int> exit) : base(exit)
         {
             this.set = set;
-            wordSet = new List<string>();
             int maskPos = 0;
-            switch (set)
-            {
-                default:        //0
-                    firstWord = "Сом";
-                    wordSet.Add("Кот");
-                    wordSet.Add("Дом");
-                    wordSet.Add("Торт");
-                    wordSet.Add("Мак");
-                    trueWord = 2;
-                    maskPos = 0;
-                    break;
-                case (1):
-                    firstWord = "Дом";                                                 	 
-                    wordSet.Add("Ком");
-                    wordSet.Add("Торт");
-                    wordSet.Add("Мак");
-                    wordSet.Add("Дуб");
-                    trueWord = 1;
-                    maskPos = 0;
-                    break;
-                case (2):
-                    firstWord = "Торт";                                                 	
-                    wordSet.Add("Корт");
-                    wordSet.Add("Ком");
-                    wordSet.Add("Мак");
-                    wordSet.Add("Дуб");
-                    trueWord = 1;
-                    maskPos = 0;
-                    break;
-                case (3):
-                    firstWord = "Каска";                                               	
-                    wordSet.Add("Маска");
-                    wordSet.Add("Корт");
-                    wordSet.Add("Торт");
-                    wordSet.Add("Мак");
-                    trueWord = 1;
-                    maskPos = 0;
-                    break;
-                case (4):
-                    firstWord = "Мак";                                                 	
-                    wordSet.Add("Рак");
-                    wordSet.Add("Торт");
-                    wordSet.Add("Шар");
-                    wordSet.Add("Кот");
-                    trueWord = 1;
-                    maskPos = 0;
-                    break;
-                case (5):
-                    firstWord = "Зуб";                                                 	
-                    wordSet.Add("Дуб");
-                    wordSet.Add("Мак");
-                    wordSet.Add("Кот");
-                    wordSet.Add("Рак");
-                    trueWord = 1;
-                    maskPos = 0;
-                    break;
-            }
-            List<int> words = (new int[]{ 1, 2, 3, 4 }).ToList<int>();
-            Random rand = new Random();
-            words.Sort(delegate (int a, int b) { return rand.Next(2) * 2 - 1; });
-            wordsPic = new List<Sprite>();
-            Canvas.elements.Add(new Sprite(Canvas, "Wizzard/BackGround", 100, Vector2.Zero));
+            if (set >= 0 && set <= 5)
+                maskPos = 0;
+            if ((set >= 6 && set <= 9) || (set == 11))
+                maskPos = 2;
+            if (set == 10)
+                maskPos = 3;
+            words = new List<Word>();
+            Canvas.elements.Add(new Sprite(Canvas, "Common/Wizzard/BackGround", 100, Vector2.Zero));
             for (int i = 0; i < 4; i++)
             {
-                wordsPic.Add(new Sprite(Canvas, "Wizzard/Set" + set.ToString() + "/" + words[i].ToString(), 16, new Vector2(13 + i * 19.3f, 37)));
-                wordsPic[i].value = words[i];
-                Canvas.elements.Add(wordsPic[i]);
+                words.Add(new Word(Canvas, set, i + 1));
+                Canvas.elements.Add(words[i]);
             }
-            Canvas.elements.Add(new Sprite(Canvas, "Wizzard/Set" + set.ToString() + "/0", 20, new Vector2(24, 6.5f)));
-            truePic = new Sprite(Canvas, "Wizzard/Set" + set.ToString() + "/" + trueWord.ToString(), 20, new Vector2(55, 6.5f));
-            truePic.visible = false;
-            Canvas.elements.Add(truePic);
+            words.Sort(delegate (Word a, Word b) { return TheGame.rand.Next(2) * 2 - 1; });
+            for (int i = 0; i < 4; i++)
+                words[i].Move(i);
+            Canvas.elements.Add(baseWord = new Word(Canvas, set, 0));
+            trueWord = new Word(Canvas, set, 1);
+            trueWord.Move(-1);
+            trueWord.visible = false;
+            Canvas.elements.Add(trueWord);
             Sprite sprite;
-            Canvas.elements.Add(sprite = new Sprite(Canvas, "Wizzard/Set" + set.ToString() + "/Subscribes/0", 1, new Vector2(0, 28)));
+            Canvas.elements.Add(sprite = new Sprite(Canvas, TheGame.language + "/Wizzard/Set" + set.ToString() + "/Subscribes/0", 1, new Vector2(0, 28)));
             sprite.scale = 7 / sprite.size.Y;
-            sprite.pos.X = 30 - sprite.size.X / 2;
-            Canvas.elements.Add(sprite = new Sprite(Canvas, "Wizzard/Set" + set.ToString() + "/Subscribes/1", 1, new Vector2(0, 28)));
-            sprite.scale = 7 / sprite.size.Y;
-            sprite.pos.X = 70 - sprite.size.X / 2;
-            Canvas.elements.Add(mask = new Sprite(Canvas, "Wizzard/Mask", 7.5f, new Vector2(70 - sprite.size.X / 2 + maskPos * 7.5f, 28)));
+            sprite.pos.X = 50 - sprite.size.X / 2;
+            Canvas.elements.Add(mask = new Sprite(Canvas, "Common/Wizzard/Mask", 7.5f, new Vector2(50 - sprite.size.X / 2 + maskPos * 7.5f, 28)));
+            mask.visible = false;
+            mask.color = new Color(255, 0, 0, 128);
+            TheGame.task = new Sound(TheGame.language + "/Wizzard/Set" + set.ToString() + "/Task");
+            Canvas.active = false;
+            EngineCore.PlaySound(TheGame.task);
+            AddEvent((float)TheGame.task.Duration.TotalSeconds, delegate
+            {
+                Canvas.active = true;
+            });
+            //TheGame.help = new Sound(TheGame.language + "/Wizzard/Set" + set.ToString() + "/Task");
+        }
+
+        public override Scene GetReloadedScene()
+        {
+            return new Wizzards(set, exit);
         }
 
         public override void Update()
         {
             base.Update();
-            if (errorTimer > 0)
+            foreach (Word word in words)
             {
-                errorTimer -= EngineCore.gameTime.ElapsedGameTime.Milliseconds / 1000f;
-            }
-            else if (errorTimer < 0)
-            {
-                errorTimer = 0;
-                mask.color = Color.White;
-            }
-            foreach (Sprite word in wordsPic)
-            {
-                if (word.UnderMouse() &&
-                    EngineCore.currentMouseState.LeftButton == ButtonState.Pressed &&
-                    EngineCore.oldMouseState.LeftButton == ButtonState.Released && errorTimer <= 0)
-                    if ((int)word.value == trueWord)
-                    {
-                        truePic.visible = true;
-                        mask.visible = false;
-                        AddEffect(new EffectSprite(Canvas, "Wizzard/Mask", 1, 1, Vector2.Zero, 1));
-                        AddEvent(1, delegate
+                if (word.UnderMouse() && Canvas.active)
+                {
+                    if (!word.UnderMouseBefore())
+                        EngineCore.PlaySound(word.sound);
+                    if (EngineCore.currentMouseState.LeftButton == ButtonState.Pressed &&
+                        EngineCore.oldMouseState.LeftButton == ButtonState.Released)
+                        if (word.number == 1)
                         {
-                            win = true;
-                        });
-                    }
-                    else
-                    {
-                        mask.color = Color.Red;
-                        errorTimer = 0.5f;
-                    }
+                            trueWord.visible = true;
+                            baseWord.visible = false;
+                            Sprite sprite;
+                            Canvas.elements.Add(sprite = new Sprite(Canvas, TheGame.language + "/Wizzard/Set" + set.ToString() + "/Subscribes/1", 1, new Vector2(0, 28)));
+                            sprite.scale = 7 / sprite.size.Y;
+                            sprite.pos.X = 50 - sprite.size.X / 2;
+                            Canvas.active = false;
+                            EngineCore.PlaySound(trueWord.sound);
+                            AddEvent(1, delegate
+                            {
+                                exit(set);
+                            });
+                        }
+                        else
+                        {
+                            TheGame.PlayWrong();
+                            mask.visible = true;
+                            AddEvent(0.5f, delegate
+                            {
+                                mask.visible = false;
+                            });
+                        }
+                }
             }
-            if (win) exit(set);
+            if (baseWord.UnderMouse() && !baseWord.UnderMouseBefore() && Canvas.active)
+                EngineCore.PlaySound(baseWord.sound);
         }
     }
 }

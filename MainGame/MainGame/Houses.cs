@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
@@ -10,117 +11,154 @@ namespace MainGame
 {
     class Houses : Scene
     {
+        class House : Sprite
+        {
+            public bool full
+            {
+                get
+                {
+                    return include >= capacity;
+                }
+            }
+            public int include;
+            public int capacity;
+            public List<Item> items;
+
+            public House(Object2D parent, int set, int size) : base(parent, "Common/Houses/House" + size.ToString(), 28, new Vector2(4 + size * 31, 27))
+            {
+                int[] partsCount;
+                switch (set)
+                {
+                    default:        //0
+                        partsCount = new int[] { 3, 2, 1 };
+                        break;
+                    case (1):
+                        partsCount = new int[] { 0, 3, 3 };
+                        break;
+                    case (2):
+                        partsCount = new int[] { 0, 2, 4 };
+                        break;
+                }
+                this.capacity = partsCount[size];
+                parent.elements.Add(this);
+                items = new List<Item>();
+            }
+        }
+
+        class Item : Sprite
+        {
+            public Sound sound;
+            public House house;
+
+            public Item(Object2D parent, int set, int number, House house) : base(parent, /*TheGame.language +*/ "Common/Houses/Set" + set.ToString() + "/" + number.ToString(), 19, Vector2.One * 3)
+            {
+                this.house = house;
+                sound = new Sound(TheGame.language + "/Houses/Set" + set.ToString() + "/" + number.ToString());
+            }
+        }
+
         int set = 0;
-        List<Sprite> houses;
-        List<Sprite> items;
-        int itemCount = 6;
-        int[] partsCount;
+        List<House> houses;
+        List<Item> items;
         int right = 0;
         bool isVoid = true;
         Sprite place;
 
         public Houses(int set, Action<int> exit) : base(exit)
         {
-            Canvas.elements.Add(new Sprite(Canvas, "Houses/BG", 100, Vector2.Zero));
-            houses = new List<Sprite>();
-            items = new List<Sprite>();
-            place = new Sprite(Canvas, "Houses/Place", 25, new Vector2(37, 1));
+            this.set = set;
+            Canvas.elements.Add(new Sprite(Canvas, "Common/Houses/BG", 100, Vector2.Zero));
+            houses = new List<House>();
+            items = new List<Item>();
+            place = new Sprite(Canvas, "Common/Houses/Place", 25, new Vector2(37, 1));
             Canvas.elements.Add(place);
             for (int i = 0; i < 3; i++)
-            {
-                Sprite house = new Sprite(Canvas, "Houses/House" + i.ToString(), 28, new Vector2(4 + i * 31, 27));
-                house.value = 0;
-                houses.Add(house);
-                Canvas.elements.Add(house);
-            }
-            this.set = set;
-            switch (set)
-            {
-                default:        //0
-                    partsCount = new int[] { 3, 2, 1 };
-                    break;
-                case (1):
-                    partsCount = new int[] { 0, 3, 3 };
-                    break;
-                case (2):
-                    partsCount = new int[] { 0, 2, 4 };
-                    break;
-            }
-            int[] partsCountBuf = (int[])partsCount.Clone();
-            int parts = 0;
+                houses.Add(new House(Canvas, set, i));
+            int curHouse = 0;
             for (int i = 0; i < 6; i++)
             {
-                Sprite item = new Sprite(place, "Houses/Sets/" + set.ToString() + "/" + i.ToString(), 19, Vector2.One * 3);
-                while (partsCountBuf[parts] <= 0)
-                    parts++;
-                item.value = parts;
-                partsCountBuf[parts]--;
+                if (!(houses[curHouse].items.Count < houses[curHouse].capacity))
+                    curHouse++;
+                Item item = new Item(place, set, i, houses[curHouse]);
                 items.Add(item);
+                houses[curHouse].items.Add(item);
             }
-            Random rand = new Random();
-            items.Sort(delegate (Sprite a, Sprite b)
+            items.Sort(delegate (Item a, Item b)
             {
-                int res = rand.Next(2) * 2 - 1;
+                int res = TheGame.rand.Next(2) * 2 - 1;
                 return res;
             });
+            TheGame.task = new Sound(TheGame.language + "/Houses/Task" + set.ToString());
+            EngineCore.PlaySound(TheGame.task);
+            Canvas.active = false;
+            AddEvent((float)TheGame.task.Duration.TotalSeconds, delegate () { Canvas.active = true; });
+        }
 
+        public override Scene GetReloadedScene()
+        {
+            return new Houses(set, exit);
         }
 
         public override void Update()
         {
-            if (isVoid && right < 6)
+            if (Canvas.active)
             {
-                place.elements.Add(items[right]);
-                isVoid = false;
-            }
-            if (right < 6)
-            {
-                if (items[right].UnderMouse() &&
-                    EngineCore.currentMouseState.LeftButton == ButtonState.Pressed &&
-                    EngineCore.oldMouseState.LeftButton == ButtonState.Released &&
-                    Draggable == null)
+                if (isVoid && right < 6)
                 {
-                    Draggable = (Sprite)items[right].Clone();
-                    Draggable.parent = Canvas;
-                    Canvas.elements.Add(Draggable);
-                    items[right].visible = false;
+                    place.elements.Add(items[right]);
+                    isVoid = false;
                 }
-                if (Draggable != null)
+                if (right < 6)
                 {
-                    if (EngineCore.currentMouseState.LeftButton == ButtonState.Released &&
-                        EngineCore.oldMouseState.LeftButton == ButtonState.Pressed)
-                    {
-                        if (houses[(int)Draggable.value].UnderMouse())
+                    if (items[right].UnderMouse() && Draggable == null)
+                        if (EngineCore.currentMouseState.LeftButton == ButtonState.Pressed &&
+                            EngineCore.oldMouseState.LeftButton == ButtonState.Released)
                         {
-                            isVoid = true;
-                            right++;
-                            place.elements.Clear();
-                            Sprite item = (Sprite)Draggable;
-                            item.scale = 10;
-                            item.parent = houses[(int)item.value];
-                            item.pos = new Vector2(((int)houses[(int)item.value].value) * 7, 12);
-                            houses[(int)item.value].elements.Add(item);
-                            if (((int)houses[(int)item.value].value) >= partsCount[(int)item.value])
-                                houses[(int)item.value].ChangeTexture("Houses/CompleteHouse" + ((int)item.value).ToString());
-                            houses[(int)item.value].value = ((int)houses[(int)item.value].value) + 1;
-                            Canvas.elements.Remove(Draggable);
-                            Draggable = null;
+                            Draggable = (Item)items[right].Clone();
+                            Draggable.parent = Canvas;
+                            Canvas.elements.Add(Draggable);
+                            items[right].visible = false;
                         }
-                        else
+                        else if (items[right].UnderMouseBefore())
+                            EngineCore.PlaySound(items[right].sound);
+                    if (Draggable is Item)
+                    {
+                        if (EngineCore.currentMouseState.LeftButton == ButtonState.Released &&
+                            EngineCore.oldMouseState.LeftButton == ButtonState.Pressed)
                         {
-                            Canvas.elements.Remove(Draggable);
-                            Draggable = null;
-                            items[right].visible = true;
-                            items[right].active = true;
+                            if (((Draggable as Item).house).UnderMouse())
+                            {
+                                isVoid = true;
+                                right++;
+                                place.elements.Clear();
+                                Item item = (Item)Draggable;
+                                item.scale = 10;
+                                item.parent = item.house;
+                                item.pos = new Vector2(item.house.include * 7, 12);
+                                item.house.elements.Add(item);
+                                if (item.house.full)
+                                    item.house.ChangeTexture("Common/Houses/CompleteHouse" + ((int)item.value).ToString());
+                                item.house.include++;
+                                Canvas.elements.Remove(Draggable);
+                                Draggable = null;
+                            }
+                            else
+                            {
+                                TheGame.PlayWrong();
+                                Canvas.elements.Remove(Draggable);
+                                Draggable = null;
+                                items[right].visible = true;
+                                items[right].active = true;
+                            }
                         }
                     }
                 }
             }
             base.Update();
-            if (right >= 6)
+            if (right >= 6 && Canvas.active)
             {
                 for (int i = 0; i < 3; i++)
-                    houses[i].ChangeTexture("Houses/CompleteHouse" + i.ToString());
+                    houses[i].ChangeTexture("Common/Houses/CompleteHouse" + i.ToString());
                 AddEvent(1, delegate
                 {
                     exit(set);

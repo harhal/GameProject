@@ -13,16 +13,15 @@ namespace MainGame
 
         public TrainIntro() :base(null)
         {
-            Canvas.elements.Add(new Sprite(Canvas, "Train/BG", 100, Vector2.Zero));
-            train = new Sprite(Canvas, "Train/TrainBG", 100, new Vector2(120, 25));
-            train.elements.Add(new Sprite(train, "Train/Train", 100, new Vector2(0, 0)));
-            /*for (int i = 0; i < 5; i++)
-            {
-                Sprite Lamp = new Sprite(train, "Train/Lamp", 5, new Vector2(24.6f + 16.2f * i, 6));
-                Lamp.color = Color.Red;
-                train.elements.Add(Lamp);
-            }*/
+            Canvas.elements.Add(new Sprite(Canvas, "Common/Train/BG", 100, Vector2.Zero));
+            train = new Sprite(Canvas, "Common/Train/TrainBG", 100, new Vector2(120, 25));
+            train.elements.Add(new Sprite(train, "Common/Train/Train", 100, new Vector2(0, 0)));
             Canvas.elements.Add(train);
+        }
+
+        public override Scene GetReloadedScene()
+        {
+            return new TrainIntro();
         }
 
         public override void Update()

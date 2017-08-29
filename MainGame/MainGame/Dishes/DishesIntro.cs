@@ -9,7 +9,7 @@ using UnicornEngine;
 
 namespace MainGame
 {
-    class DishesIntro : Dishes
+    class DishesIntro : ItemsGame
     {
         Sprite Kitchen;
         Sprite Table;
@@ -23,18 +23,18 @@ namespace MainGame
             AddEvent(0.2f, delegate { Canvas.active = true; });
             shader = EngineCore.content.Load<Effect>("Shaders/BlackWhite");
             Canvas.elements.Add(
-                new Sprite(Canvas, "Dishes/Intro/BG", 100, Vector2.Zero));
-            Kitchen = new Sprite(Canvas, "Dishes/Intro/Kitchen", 76, new Vector2(0, -5));
+                new Sprite(Canvas, "Common/Dishes/Intro/BG", 100, Vector2.Zero));
+            Kitchen = new Sprite(Canvas, "Common/Dishes/Intro/Kitchen", 76, new Vector2(0, -5));
             Kitchen.value = true;
-            Table = new Sprite(Canvas, "Dishes/Intro/Table", 53, new Vector2(44, 29));
+            Table = new Sprite(Canvas, "Common/Dishes/Intro/Table", 53, new Vector2(44, 29));
             Table.value = true;
             Canvas.elements.Add(
-            KitchenButton = new Button(Canvas, "Dishes/Intro/KitchenButton", 39, new Vector2(27, 16), new int[] { 1, 1, 1 }, "", delegate
+            KitchenButton = new Button(Canvas, "Common/Dishes/Intro/KitchenButton", 39, new Vector2(27, 16), new int[] { 1, 1, 1 }, "", delegate
             {
                 exit(1);
             }));
             Canvas.elements.Add(
-            TableButton = new Button(Canvas, "Dishes/Intro/TableButton", 39, new Vector2(52, 36), new int[] { 1, 1, 1 }, "", delegate
+            TableButton = new Button(Canvas, "Common/Dishes/Intro/TableButton", 39, new Vector2(52, 36), new int[] { 1, 1, 1 }, "", delegate
             {
                 exit(12);
             }));
@@ -73,6 +73,11 @@ namespace MainGame
                 Kitchen.scale = 76;
                 Kitchen.pos = new Vector2(0, -5);
             }
+        }
+
+        public override Scene GetReloadedScene()
+        {
+            return new DishesIntro(set, exit);
         }
 
         public override void Draw()
